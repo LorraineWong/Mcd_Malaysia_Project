@@ -1,7 +1,24 @@
-venv/
+# Byte-compiled / optimized / DLL files
 __pycache__/
-test/
+*.py[cod]
+*.so
+
+# SQLite database files
 *.db
 *.sqlite3
+
+# Environment variables / secrets
 .env
+
+# Log files
 *.log
+
+# Virtual environments
+venv/
+
+# Test directories in any subfolder
+**/test/
+test/
+
+# VSCode project settings
+.vscode/

@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 import json
 import time
 import sqlite3
-from geocode_utils import geocode_address  # Import geocoding utility
+from geocode_utils import geocode_address # Import geocoding utility
 
 DB_PATH = "mcd_outlets.db"
 
