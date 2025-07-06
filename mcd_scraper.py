@@ -7,12 +7,13 @@ from bs4 import BeautifulSoup
 import json
 import time
 import sqlite3
+from geocode_utils import geocode_address  # Import geocoding utility
 
 DB_PATH = "mcd_outlets.db"
 
 def init_db():
     """
-    Initialize SQLite database and create the outlets table if it does not exist.
+    Initialize the SQLite database and create the outlets table if it does not exist.
     """
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -55,7 +56,8 @@ def save_outlet_to_db(outlet):
 def extract_outlets_from_page(html):
     """
     Parse the page HTML and extract all McDonald's outlet information from <script type="application/ld+json"> blocks.
-    Auto-generate map links based on latitude/longitude if not found.
+    If latitude/longitude are missing, use geocode_address to get them from the address.
+    Always generate map links if possible.
     """
     soup = BeautifulSoup(html, "lxml")
     outlets = []
@@ -65,26 +67,31 @@ def extract_outlets_from_page(html):
             if isinstance(data, dict) and data.get("@type") == "Restaurant":
                 lat = data.get("geo", {}).get("latitude")
                 lon = data.get("geo", {}).get("longitude")
+                # If coordinates are missing, geocode using address
+                if not lat or not lon:
+                    lat, lon = geocode_address(data.get("address"))
+                # Fallback if still missing (API/network failure)
+                lat = lat or ""
+                lon = lon or ""
                 outlet = {
                     "name": data.get("name"),
                     "address": data.get("address"),
                     "latitude": lat,
                     "longitude": lon,
                     "telephone": data.get("telephone"),
-                    # Always generate Google Maps & Waze links
                     "google_map_link": f"https://www.google.com/maps?q={lat},{lon}" if lat and lon else None,
                     "waze_link": f"https://waze.com/ul?ll={lat},{lon}&navigate=yes" if lat and lon else None,
                 }
                 outlets.append(outlet)
         except Exception as e:
-            print("[WARN] JSON parse error:", e)
+            print("[WARN] JSON parse error or geocode failed:", e)
     return outlets
 
 def main():
     # Initialize DB
     init_db()
 
-    # Setup Chrome driver
+    # Setup Chrome driver (not headless for debugging)
     service = Service('./chromedriver')
     driver = webdriver.Chrome(service=service)
     driver.get("https://www.mcdonalds.com.my/locate-us")
@@ -103,7 +110,7 @@ def main():
     )
     search_btn.click()
 
-    # Wait for results to load
+    # Wait for results to load (adjust if network is slow)
     time.sleep(2)
 
     # Extract outlet info from HTML
