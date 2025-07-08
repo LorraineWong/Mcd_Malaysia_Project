@@ -1,18 +1,21 @@
-# main.py
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from llm_utils import parse_query_to_feature_and_location, FEATURE_KEY_DESC
 from db import get_all_outlets, get_outlet_by_id
 from models import Outlet
-from fastapi.middleware.cors import CORSMiddleware
+
+# Supported locations (should match LOCATION_KEYS in llm_utils.py)
+VALID_LOCATIONS = ["kuala lumpur", "kl"]
 
 app = FastAPI(
-    title="McDonald's Malaysia Outlets API",
-    description="Provides outlet data for McDonald's Malaysia."
+    title="🍔 McDonald's Outlets in Kuala Lumpur, Malaysia",
+    description="Provides outlet data for McDonald's Kuala Lumpur, Malaysia."
 )
 
-# Add CORS middleware
+# Allow CORS for frontend dev/demo
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins, adjust as needed for production
+    allow_origins=["*"],  # Change this in production!
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -24,11 +27,55 @@ def root():
 
 @app.get("/outlets", response_model=list[Outlet])
 def list_outlets():
+    """Return all outlets (Kuala Lumpur only)"""
     return get_all_outlets()
 
 @app.get("/outlets/{outlet_id}", response_model=Outlet)
 def outlet_detail(outlet_id: int):
+    """Get details for a single outlet by ID"""
     outlet = get_outlet_by_id(outlet_id)
     if outlet:
         return outlet
     raise HTTPException(status_code=404, detail="Outlet not found")
+
+@app.post("/ask")
+async def ask(request: Request):
+    """
+    LLM-powered search endpoint for natural language queries.
+    Extracts feature_key and location, then searches only Kuala Lumpur outlets.
+    """
+    data = await request.json()
+    user_question = data.get("question", "")
+    feature_key, location = parse_query_to_feature_and_location(user_question)
+
+    # Standardize location
+    if location:
+        location_norm = location.strip().lower()
+        if location_norm in VALID_LOCATIONS:
+            location_norm = "kuala lumpur"
+        else:
+            location_norm = location.strip().lower()
+    else:
+        location_norm = "kuala lumpur"
+
+    # No feature key or invalid location
+    if (not feature_key) or (location_norm not in VALID_LOCATIONS):
+        return {
+            "feature_key": None,
+            "location": location or "",
+            "feature_desc": "",
+            "outlets": [],
+            "msg": "Sorry, we currently only support searches for McDonald's Outlets in Kuala Lumpur, Malaysia."
+        }
+
+    outlets = get_all_outlets()
+    filtered = [o for o in outlets if o.features and o.features.get(feature_key)]
+    names = [o.name for o in filtered]
+
+    return {
+        "feature_key": feature_key,
+        "location": "kuala lumpur",
+        "feature_desc": FEATURE_KEY_DESC.get(feature_key, feature_key),
+        "outlets": names,
+        "msg": f"Found {len(names)} outlets in Kuala Lumpur with {FEATURE_KEY_DESC.get(feature_key, feature_key)}"
+    }

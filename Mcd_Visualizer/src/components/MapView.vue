@@ -6,7 +6,6 @@
 import { onMounted } from 'vue'
 import mapboxgl from 'mapbox-gl'
 import axios from 'axios'
-import { featureIcons } from '../utils/featureIcons'
 
 // Mapbox API token (put yours in .env)
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
@@ -22,6 +21,8 @@ const icon24h = '/assets/ic_24h.png'
 const pinBlue = '/assets/place_24dp_2492FF.svg'
 const pinRed = '/assets/place_24dp_FF5050.svg'
 const pinOrange = '/assets/place_24dp_FFA600.svg'
+
+import { featureIcons } from '../utils/featureIcons'
 
 // Returns the pin SVG icon path based on overlap count
 function getPinIcon(count) {

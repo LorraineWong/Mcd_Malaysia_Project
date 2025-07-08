@@ -10,6 +10,7 @@ __pycache__/
 .env
 Mcd_Scraper/.env
 Mcd_Visualizer/.env
+Mcd_Api/.env
 
 # Log files
 *.log
