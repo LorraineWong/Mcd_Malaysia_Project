@@ -48,14 +48,18 @@ def parse_query_to_feature_and_location(user_query: str):
     """
     prompt = (
         "You are a smart assistant for McDonald's outlet search in Malaysia.\n"
-        "You must extract two things from the user's question:\n"
-        "1. The feature key (must be EXACTLY one from this list: "
-        f"{', '.join(FEATURE_KEYS)})\n"
-        "2. The location/city (ONLY from this list: 'kuala lumpur', 'kl').\n"
-        "If the question asks about any city or country NOT in this list, output nothing for both fields.\n"
-        "Format your answer STRICTLY as: <feature_key>|<location>\n"
-        "If location is not mentioned, output 'kuala lumpur' as default.\n"
-        "If the question is not relevant or not about these features or locations, output just: |\n"
+        "Extract ONLY the following two things from the user's question:\n"
+        "1. Feature key: exactly one from this list: "
+        f"{', '.join(FEATURE_KEYS)}\n"
+        "2. Location: only one of: 'kuala lumpur', 'kl'.\n"
+        "\n"
+        "Strict answer format: <feature_key>|<location>\n"
+        "Rules:\n"
+        "- If the question is about any location NOT in ['kuala lumpur', 'kl'], output just: |\n"
+        "- If no valid feature is mentioned, output just: |\n"
+        "- If the question is not about McDonald's outlets or irrelevant, output just: |\n"
+        "- If location is missing, assume 'kuala lumpur'.\n"
+        "- Do NOT explain or repeat the user's question, only output the format.\n"
         "\nExamples:\n"
         "Q: Which outlets operate 24 hours in KL?\nA: is_24h|kuala lumpur\n"
         "Q: Which outlet allows birthday parties in PJ?\nA: |\n"
@@ -66,7 +70,6 @@ def parse_query_to_feature_and_location(user_query: str):
         f"User question: {user_query}\n"
         "Answer:"
     )
-
 
     try:
         response = model.generate_content(prompt)

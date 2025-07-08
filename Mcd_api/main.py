@@ -48,24 +48,23 @@ async def ask(request: Request):
     user_question = data.get("question", "")
     feature_key, location = parse_query_to_feature_and_location(user_question)
 
-    # Standardize location
-    if location:
-        location_norm = location.strip().lower()
-        if location_norm in VALID_LOCATIONS:
-            location_norm = "kuala lumpur"
-        else:
-            location_norm = location.strip().lower()
-    else:
+    # Standardize location: treat both "kl" and "kuala lumpur" as "kuala lumpur"
+    location_norm = (location or "").strip().lower()
+    if location_norm in ["kl", "kuala lumpur"]:
         location_norm = "kuala lumpur"
 
-    # No feature key or invalid location
-    if (not feature_key) or (location_norm not in VALID_LOCATIONS):
+    # Reject ALL not supported locations (not KL) or missing/invalid feature_key
+    if (location_norm != "kuala lumpur") or (not feature_key):
         return {
             "feature_key": None,
             "location": location or "",
             "feature_desc": "",
             "outlets": [],
-            "msg": "Sorry, we currently only support searches for McDonald's Outlets in Kuala Lumpur, Malaysia."
+            "msg": (
+                "Sorry, I can only answer about McDonald's outlets in Kuala Lumpur "
+                "and supported features (e.g. 24h, WiFi, Drive-Thru). "
+                "Try asking about KL (Kuala Lumpur) only."
+            )
         }
 
     outlets = get_all_outlets()
@@ -77,5 +76,11 @@ async def ask(request: Request):
         "location": "kuala lumpur",
         "feature_desc": FEATURE_KEY_DESC.get(feature_key, feature_key),
         "outlets": names,
-        "msg": f"Found {len(names)} outlets in Kuala Lumpur with {FEATURE_KEY_DESC.get(feature_key, feature_key)}"
+        "msg": (
+            f"Found {len(names)} outlets in Kuala Lumpur with "
+            f"{FEATURE_KEY_DESC.get(feature_key, feature_key)}."
+            if names else
+            f"Sorry, no outlets in Kuala Lumpur found with {FEATURE_KEY_DESC.get(feature_key, feature_key)}."
+        )
     }
+

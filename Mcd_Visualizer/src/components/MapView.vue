@@ -1,44 +1,74 @@
 <template>
-  <div id="map" style="width: 100%; height: 90vh; border-radius: 16px; box-shadow: 0 2px 12px #888;"></div>
+  <div id="map" style="width: 100%; height: 90vh; border-radius: 16px; box-shadow: 0 2px 12px #888;">
+    <button
+      class="reset-map-btn"
+      @click="resetMapView"
+      title="Reset map view"
+    >
+      <span class="material-icons">my_location</span>
+    </button>
+  </div>
 </template>
 
+
 <script setup>
-import { onMounted } from 'vue'
+// Import Vue core features
+import { onMounted, watch } from 'vue'
 import mapboxgl from 'mapbox-gl'
 import axios from 'axios'
 
-// Mapbox API token (put yours in .env)
+// Default center and zoom level for the map
+const DEFAULT_CENTER = [101.6869, 3.1390]; // KL coordinates
+const DEFAULT_ZOOM = 10;
+let map = null; // (make sure map is accessible here)
+let activePopup = null
+
+function resetMapView() {
+  if (map) {
+    map.flyTo({ center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM, speed: 1.2 })
+    // Close popup if any is open
+    if (activePopup) {
+      activePopup.remove()
+      activePopup = null
+    }
+  }
+}
+
+// Receive the focusedOutletId prop from the parent (App.vue)
+const props = defineProps({
+  focusedOutletId: String
+})
+
+// Set Mapbox API token (put yours in .env)
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
 
-// Static asset paths
+// Static asset icons for the popup
 const phoneIcon = '/assets/phone.png'
 const googleMapIcon = '/assets/google_map.png'
 const wazeIcon = '/assets/waze.png'
 const mcdLogo = '/assets/mcdonalds_logo.png'
-const icon24h = '/assets/ic_24h.png'
-
-// The three marker pin icons (downloaded SVGs)
 const pinBlue = '/assets/place_24dp_2492FF.svg'
 const pinRed = '/assets/place_24dp_FF5050.svg'
 const pinOrange = '/assets/place_24dp_FFA600.svg'
-
 import { featureIcons } from '../utils/featureIcons'
 
-// Returns the pin SVG icon path based on overlap count
-function getPinIcon(count) {
-  if (count >= 15) return pinRed    // Heavy overlap (red)
-  if (count >= 7)  return pinOrange // Medium overlap (orange)
-  return pinBlue                    // No/few overlap (blue)
-}
+// --- Shared state for markers ---
+let markersById = {}  // To store all Mapbox marker/popup objects by outlet ID
+let outlets = []      // Array to store all outlet data
 
-// Returns color for catchment circle based on overlap count
+// Utility: Selects the marker icon depending on overlap
+function getPinIcon(count) {
+  if (count >= 15) return pinRed
+  if (count >= 7)  return pinOrange
+  return pinBlue
+}
+// Utility: Color for the outlet circle
 function getPinColor(count) {
   if (count >= 15) return "#FF5050"
   if (count >= 7)  return "#FFA600"
   return "#2492FF"
 }
-
-// Create GeoJSON polygon for a circle (center [lng, lat], radius in km)
+// Utility: Draw a circular GeoJSON polygon (radius in km)
 function createGeoCircle(center, radiusKm, points = 64) {
   const [lng, lat] = center
   const coords = []
@@ -51,8 +81,7 @@ function createGeoCircle(center, radiusKm, points = 64) {
   coords.push(coords[0])
   return { type: "Feature", geometry: { type: "Polygon", coordinates: [coords] } }
 }
-
-// Calculate Haversine distance (km) between two [lng, lat] points
+// Utility: Haversine distance in km between two points
 function haversineDistance([lng1, lat1], [lng2, lat2]) {
   function toRad(deg) { return deg * Math.PI / 180 }
   const R = 6371
@@ -65,7 +94,7 @@ function haversineDistance([lng1, lat1], [lng2, lat2]) {
 
 onMounted(async () => {
   // 1. Initialize the Mapbox map
-  const map = new mapboxgl.Map({
+  map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/streets-v11',
     center: [101.6869, 3.1390],
@@ -76,6 +105,7 @@ onMounted(async () => {
   let popupHover = false
   let markerHover = false
 
+  // Function: Tries to close the popup if not hovered
   function tryClosePopup() {
     setTimeout(() => {
       if (!markerHover && !popupHover && activePopup) {
@@ -86,11 +116,11 @@ onMounted(async () => {
   }
 
   try {
-    // 2. Fetch all outlets from backend API
+    // 2. Fetch all outlets from your backend API
     const response = await axios.get('http://127.0.0.1:8000/outlets')
-    const outlets = response.data
+    outlets = response.data
 
-    // 3. For each outlet, find all others whose 5km catchments overlap (distance < 10km)
+    // 3. Build overlap map: which outlets overlap in their 5km radius
     const overlapMap = {}
     for (let i = 0; i < outlets.length; i++) {
       overlapMap[outlets[i].id] = []
@@ -108,13 +138,13 @@ onMounted(async () => {
       }
     }
 
-    // 4. Render all catchment circles and pin markers
+    // 4. Draw all outlets, catchment circles and popup info
     map.on('load', () => {
       outlets.forEach((outlet) => {
         if (outlet.longitude && outlet.latitude) {
           const overlapCount = overlapMap[outlet.id].length
 
-          // --- Draw the 5km catchment circle ---
+          // Draw 5km catchment circle
           const circleId = `circle-${outlet.id}`
           map.addSource(circleId, {
             type: "geojson",
@@ -130,7 +160,7 @@ onMounted(async () => {
             }
           })
 
-          // --- Create a marker using your SVG image ---
+          // Marker with custom SVG
           const el = document.createElement('div')
           el.className = 'custom-marker'
           el.style.width = '42px'
@@ -140,7 +170,6 @@ onMounted(async () => {
           el.style.justifyContent = 'center'
           el.style.cursor = 'pointer'
           el.style.filter = 'drop-shadow(0 0 3px #fff) drop-shadow(0 1px 6px rgba(0,0,0,0.15))'
-          // Insert SVG <img>
           const img = document.createElement('img')
           img.src = getPinIcon(overlapCount)
           img.alt = 'Location Pin'
@@ -148,16 +177,14 @@ onMounted(async () => {
           img.style.height = '36px'
           el.appendChild(img)
 
-
-          
-          // --- Compose outlet popup info ---
+          // Compose outlet popup HTML
           const tel = outlet.telephone && outlet.telephone.trim() ? outlet.telephone : '-'
           const telHTML = tel !== '-' ? `<a href="tel:${tel}"><img src="${phoneIcon}" alt="Tel" width="18" style="vertical-align:middle;"/> ${tel}</a>` : `<img src="${phoneIcon}" alt="Tel" width="18" style="vertical-align:middle;opacity:.5"/> -`
           const googleMapHTML = outlet.google_map_link ? `<a href="${outlet.google_map_link}" target="_blank" style="margin-right:12px;"><img src="${googleMapIcon}" alt="Google Maps" width="20" style="vertical-align:middle;margin-right:2px"/>Google Maps</a>` : ''
           const wazeHTML = outlet.waze_link ? `<a href="${outlet.waze_link}" target="_blank"><img src="${wazeIcon}" alt="Waze" width="20" style="vertical-align:middle;margin-right:2px"/>Waze</a>` : ''
           const featureArr = outlet.features
-          ? Object.entries(outlet.features).filter(([_, v]) => v === true).map(([k, _]) => k)
-          : []
+            ? Object.entries(outlet.features).filter(([_, v]) => v === true).map(([k, _]) => k)
+            : []
           let featuresHTML = ""
           if (featureArr.length > 0) {
             featuresHTML = `
@@ -170,7 +197,6 @@ onMounted(async () => {
               </div>
             `
           }
-
           // Overlap tip with up to 8 names
           let overlapTip = ''
           if (overlapCount > 0) {
@@ -190,7 +216,6 @@ onMounted(async () => {
             overlapTip = `<div style="color:#2492FF;font-size:13px;margin:4px 0 0 0;">No overlap</div>`
           }
 
-          // Popup HTML
           const popupHTML = `
             <div class="popup-content">
               <div style="display:flex;align-items:center;margin-bottom:4px;">
@@ -212,7 +237,7 @@ onMounted(async () => {
             maxWidth: "340px",
           }).setHTML(popupHTML)
 
-          // --- Marker popup hover logic (sticky on hover) ---
+          // Marker hover logic for showing popups
           el.addEventListener('mouseenter', () => {
             markerHover = true
             if (activePopup) activePopup.remove()
@@ -235,18 +260,45 @@ onMounted(async () => {
             }
           })
 
-          // --- Add marker to map ---
-          new mapboxgl.Marker(el)
+          // Add marker to map and save for later reference
+          const marker = new mapboxgl.Marker(el)
             .setLngLat([outlet.longitude, outlet.latitude])
             .addTo(map)
+          markersById[outlet.id] = { marker, popup }
         }
       })
+    })
+    map.on('click', function (e) {
+      // Only close popup if click is not on a marker (no feature at point)
+      // If you only use custom HTML markers, you may need to check event.target
+      if (activePopup) {
+        activePopup.remove()
+        activePopup = null
+      }
     })
 
   } catch (error) {
     console.error('Error fetching outlets:', error)
   }
 })
+
+// React to parent prop: focus/fly to specific outlet when focusedOutletId changes
+watch(
+  () => props.focusedOutletId,
+  (newId) => {
+    // Close previous popup before opening new one
+    if (activePopup) {
+      activePopup.remove()
+      activePopup = null
+    }
+    if (!newId || !markersById[newId]) return
+    const { marker, popup } = markersById[newId]
+    marker._map.flyTo({ center: marker.getLngLat(), zoom: 16, speed: 1.2 })
+    popup.addTo(marker._map)
+    popup.setLngLat(marker.getLngLat())
+    activePopup = popup // <--- Update reference
+  }
+)
 </script>
 
 <style scoped>
@@ -278,5 +330,34 @@ onMounted(async () => {
 .popup-content a:hover {
   text-decoration: none;
   color: #222;
+}
+.reset-map-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px #0002;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  font-size: 1.6em;
+}
+.reset-map-btn:hover {
+  background: #2492ff;
+  color: #fff;
+}
+.reset-map-btn .material-icons {
+  font-size: 1.8em;
+  color: #2492ff;
+}
+.reset-map-btn:hover .material-icons {
+  color: #fff;
 }
 </style>

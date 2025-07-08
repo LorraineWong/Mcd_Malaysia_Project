@@ -41,7 +41,11 @@
             autocomplete="off"
             :disabled="loading"
           />
-          <button :disabled="loading || !userInput.trim()">Send</button>
+          <button :disabled="loading || !userInput.trim()">
+        <span class="material-icons" style="font-size: 1.5em; color: #2492FF; vertical-align: middle;">
+            send
+        </span>
+        </button>
         </form>
       </div>
     </transition>
@@ -142,8 +146,9 @@ async function sendMessage() {
   position: fixed;
   right: 40px;
   bottom: 120px; /* 保证不会覆盖浮动按钮 */
-  width: 390px;
-  max-height: 72vh;
+  width: 430px;
+  max-height: 90vh;
+  min-height: 340px;
   background: #fff;
   border-radius: 18px;
   box-shadow: 0 6px 32px #0002;
@@ -151,6 +156,8 @@ async function sendMessage() {
   flex-direction: column;
   z-index: 10001;
   animation: fadeInUp 0.18s;
+  resize: both;
+  overflow: auto;
 }
 
 @keyframes fadeInUp {
@@ -272,7 +279,7 @@ async function sendMessage() {
   padding-bottom: 7px;
 }
 input[type="text"] {
-  width: 260px;
+  width: 300px;
   min-width: 120px;
   max-width: 340px;
   flex: none;
