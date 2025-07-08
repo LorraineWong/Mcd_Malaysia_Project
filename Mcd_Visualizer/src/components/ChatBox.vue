@@ -145,7 +145,7 @@ async function sendMessage() {
 .chatbox-container {
   position: fixed;
   right: 40px;
-  bottom: 120px; /* 保证不会覆盖浮动按钮 */
+  bottom: 120px; /* Adjusted to avoid covering the button */
   width: 430px;
   max-height: 90vh;
   min-height: 340px;

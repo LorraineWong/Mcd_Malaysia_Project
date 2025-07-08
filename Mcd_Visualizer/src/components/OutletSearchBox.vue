@@ -32,6 +32,7 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue'
+import { API_URL } from '../apiConfig'
 
 const emit = defineEmits(['search'])
 const inputEl = ref(null)
@@ -43,7 +44,7 @@ const highlightedIdx = ref(-1)
 
 // Fetch all outlets on mount
 onMounted(async () => {
-  const res = await fetch('http://127.0.0.1:8000/outlets')
+  const res = await fetch(`${API_URL}/outlets`);
   allOutlets.value = await res.json()
 })
 

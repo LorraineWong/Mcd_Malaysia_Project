@@ -16,6 +16,7 @@
 import { onMounted, watch } from 'vue'
 import mapboxgl from 'mapbox-gl'
 import axios from 'axios'
+import { API_URL } from '../apiConfig'
 
 // Default center and zoom level for the map
 const DEFAULT_CENTER = [101.6869, 3.1390]; // KL coordinates
@@ -52,6 +53,7 @@ const pinRed = '/assets/place_24dp_FF5050.svg'
 const pinOrange = '/assets/place_24dp_FFA600.svg'
 import { featureIcons } from '../utils/featureIcons'
 
+
 // --- Shared state for markers ---
 let markersById = {}  // To store all Mapbox marker/popup objects by outlet ID
 let outlets = []      // Array to store all outlet data
@@ -62,6 +64,7 @@ function getPinIcon(count) {
   if (count >= 7)  return pinOrange
   return pinBlue
 }
+
 // Utility: Color for the outlet circle
 function getPinColor(count) {
   if (count >= 15) return "#FF5050"
@@ -117,7 +120,7 @@ onMounted(async () => {
 
   try {
     // 2. Fetch all outlets from your backend API
-    const response = await axios.get('http://127.0.0.1:8000/outlets')
+    const response = await axios.get(`${API_URL}/outlets`);
     outlets = response.data
 
     // 3. Build overlap map: which outlets overlap in their 5km radius

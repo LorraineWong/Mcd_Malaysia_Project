@@ -20,6 +20,7 @@ import { ref, nextTick } from 'vue'
 import ChatBox from './components/ChatBox.vue'
 import MapView from './components/MapView.vue'
 import OutletSearchBox from './components/OutletSearchBox.vue'
+import { API_URL } from './apiConfig'
 
 // KEY: Declare the focused outlet id as a reactive ref
 const focusedOutletId = ref(null)
@@ -34,7 +35,7 @@ function focusOutlet(id) {
 
 // Handles search and finds the matching outlet's ID
 async function handleSearch(name) {
-  const res = await fetch('http://127.0.0.1:8000/outlets')
+  const res = await fetch(`${API_URL}/outlets`)
   const outlets = await res.json()
   // Case-insensitive partial match
   const found = outlets.find(
