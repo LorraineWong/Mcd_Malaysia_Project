@@ -7,13 +7,31 @@ from bs4 import BeautifulSoup
 import json
 import time
 import sqlite3
-from geocode_utils import geocode_address # Import geocoding utility
+from geocode_utils import geocode_address  # Import your geocoding utility
 
 DB_PATH = "mcd_outlets.db"
+
+# Mapping icon filenames (or alt text) to normalized feature keys
+ICON_FEATURE_MAP = {
+    "24h": "is_24h",
+    "birthday": "has_birthday",
+    "breakfast": "has_breakfast",
+    "cashless": "has_cashless",
+    "dessert": "has_dessert",
+    "drive": "has_drive_thru",
+    "mccafe": "has_mccafe",
+    "mcdelivery": "has_mc_delivery",
+    "surau": "has_surau",
+    "wifi": "has_wifi",
+    "kiosk": "has_order_kiosk",
+    "electric": "has_ev",
+}
 
 def init_db():
     """
     Initialize the SQLite database and create the outlets table if it does not exist.
+    Adds a UNIQUE constraint on (name, address) to prevent duplicates.
+    Adds a 'features' column for JSON.
     """
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -26,7 +44,9 @@ def init_db():
             longitude REAL,
             telephone TEXT,
             waze_link TEXT,
-            google_map_link TEXT
+            google_map_link TEXT,
+            features TEXT,  -- Store all feature flags as JSON string
+            UNIQUE(name, address)
         )
     """)
     conn.commit()
@@ -34,90 +54,122 @@ def init_db():
 
 def save_outlet_to_db(outlet):
     """
-    Insert an outlet record into the database.
+    Insert or update an outlet record by (name, address) to prevent duplicates.
+    The 'features' field is saved as JSON string.
     """
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+    features_json = json.dumps(outlet.get("features", {}))
     cursor.execute("""
-        INSERT INTO outlets (name, address, latitude, longitude, telephone, waze_link, google_map_link)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        UPDATE outlets SET
+            latitude=?,
+            longitude=?,
+            telephone=?,
+            waze_link=?,
+            google_map_link=?,
+            features=?
+        WHERE name=? AND address=?
     """, (
-        outlet.get("name"),
-        outlet.get("address"),
         outlet.get("latitude"),
         outlet.get("longitude"),
         outlet.get("telephone"),
         outlet.get("waze_link"),
-        outlet.get("google_map_link")
+        outlet.get("google_map_link"),
+        features_json,
+        outlet.get("name"),
+        outlet.get("address"),
     ))
+    if cursor.rowcount == 0:
+        cursor.execute("""
+            INSERT INTO outlets
+            (name, address, latitude, longitude, telephone, waze_link, google_map_link, features)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            outlet.get("name"),
+            outlet.get("address"),
+            outlet.get("latitude"),
+            outlet.get("longitude"),
+            outlet.get("telephone"),
+            outlet.get("waze_link"),
+            outlet.get("google_map_link"),
+            features_json,
+        ))
     conn.commit()
     conn.close()
 
 def extract_outlets_from_page(html):
     """
-    Parse the page HTML and extract all McDonald's outlet information from <script type="application/ld+json"> blocks.
-    If latitude/longitude are missing, use geocode_address to get them from the address.
-    Always generate map links if possible.
+    Parse the page HTML and extract all McDonald's outlet information and features.
+    - Grabs all feature icons (e.g. 24h, Drive-Thru, WiFi...) using their image filename.
+    - Features are stored as a dictionary (e.g. {"is_24h": True, ...})
     """
     soup = BeautifulSoup(html, "lxml")
     outlets = []
-    for script in soup.find_all("script", type="application/ld+json"):
+    cards = soup.select("div.addressBox")
+    for card in cards:
         try:
-            data = json.loads(script.string)
-            if isinstance(data, dict) and data.get("@type") == "Restaurant":
-                lat = data.get("geo", {}).get("latitude")
-                lon = data.get("geo", {}).get("longitude")
-                # If coordinates are missing, geocode using address
-                if not lat or not lon:
-                    lat, lon = geocode_address(data.get("address"))
-                # Fallback if still missing (API/network failure)
-                lat = lat or ""
-                lon = lon or ""
-                outlet = {
-                    "name": data.get("name"),
-                    "address": data.get("address"),
-                    "latitude": lat,
-                    "longitude": lon,
-                    "telephone": data.get("telephone"),
-                    "google_map_link": f"https://www.google.com/maps?q={lat},{lon}" if lat and lon else None,
-                    "waze_link": f"https://waze.com/ul?ll={lat},{lon}&navigate=yes" if lat and lon else None,
-                }
-                outlets.append(outlet)
+            # Parse JSON-LD data in card
+            ld_json = None
+            for script in card.find_all("script", type="application/ld+json"):
+                data = json.loads(script.string)
+                if isinstance(data, dict) and data.get("@type") == "Restaurant":
+                    ld_json = data
+                    break
+            if not ld_json:
+                continue
+
+            # Extract coordinates
+            lat = ld_json.get("geo", {}).get("latitude")
+            lon = ld_json.get("geo", {}).get("longitude")
+            if not lat or not lon:
+                lat, lon = geocode_address(ld_json.get("address"))
+            lat = lat or ""
+            lon = lon or ""
+
+            # Extract all available features/icons
+            features = {}
+            for img in card.find_all("img", class_="addressIcon"):
+                src = img.get("src", "").lower()
+                alt = img.get("alt", "").lower()
+                for key, feature in ICON_FEATURE_MAP.items():
+                    if key in src or key in alt:
+                        features[feature] = True
+
+            # For backwards compatibility: always provide "is_24h" key
+            if "is_24h" not in features:
+                features["is_24h"] = False
+
+            outlet = {
+                "name": ld_json.get("name"),
+                "address": ld_json.get("address"),
+                "latitude": lat,
+                "longitude": lon,
+                "telephone": ld_json.get("telephone"),
+                "google_map_link": f"https://www.google.com/maps?q={lat},{lon}" if lat and lon else None,
+                "waze_link": f"https://waze.com/ul?ll={lat},{lon}&navigate=yes" if lat and lon else None,
+                "features": features,  # Store all features here
+            }
+            outlets.append(outlet)
         except Exception as e:
             print("[WARN] JSON parse error or geocode failed:", e)
     return outlets
 
 def main():
-    # Initialize DB
     init_db()
-
-    # Setup Chrome driver (not headless for debugging)
     service = Service('./chromedriver')
     driver = webdriver.Chrome(service=service)
     driver.get("https://www.mcdonalds.com.my/locate-us")
 
     wait = WebDriverWait(driver, 20)
-
-    # Select "Kuala Lumpur" from the state dropdown
-    state_select = wait.until(
-        EC.element_to_be_clickable((By.ID, "states"))
-    )
+    state_select = wait.until(EC.element_to_be_clickable((By.ID, "states")))
     Select(state_select).select_by_visible_text("Kuala Lumpur")
 
-    # Click the "Search Now" button
-    search_btn = wait.until(
-        EC.element_to_be_clickable((By.ID, "search-now"))
-    )
+    search_btn = wait.until(EC.element_to_be_clickable((By.ID, "search-now")))
     search_btn.click()
-
-    # Wait for results to load (adjust if network is slow)
     time.sleep(2)
 
-    # Extract outlet info from HTML
     outlets = extract_outlets_from_page(driver.page_source)
     print(f"Found {len(outlets)} outlets in Kuala Lumpur.")
-
-    # Save to database and print
     for outlet in outlets:
         print(outlet)
         save_outlet_to_db(outlet)

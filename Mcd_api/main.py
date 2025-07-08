@@ -2,10 +2,20 @@
 from fastapi import FastAPI, HTTPException
 from db import get_all_outlets, get_outlet_by_id
 from models import Outlet
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="McDonald's Malaysia Outlets API",
     description="Provides outlet data for McDonald's Malaysia."
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins, adjust as needed for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.get("/")

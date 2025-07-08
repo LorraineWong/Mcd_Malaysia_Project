@@ -1,9 +1,8 @@
-# db.py
 import sqlite3
+import json
 from typing import List, Optional
 from models import Outlet  # Ensure this path is correct in your project
 
-# Path to your SQLite database file
 DB_PATH = "../Mcd_Scraper/mcd_outlets.db"
 
 def get_db_connection():
@@ -15,6 +14,23 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+def _row_to_outlet(row):
+    """
+    Convert a SQLite row to an Outlet object.
+    Decodes the 'features' column from JSON string to dict.
+    """
+    row_dict = dict(row)
+    # Decode features from JSON if exists
+    features_str = row_dict.get("features")
+    if features_str:
+        try:
+            row_dict["features"] = json.loads(features_str)
+        except Exception:
+            row_dict["features"] = {}
+    else:
+        row_dict["features"] = {}
+    return Outlet(**row_dict)
+
 def get_all_outlets() -> List[Outlet]:
     """
     Fetch all McDonald's outlets from the database and return as a list of Outlet objects.
@@ -24,8 +40,7 @@ def get_all_outlets() -> List[Outlet]:
     cursor.execute("SELECT * FROM outlets")
     rows = cursor.fetchall()
     conn.close()
-    # Use dictionary unpacking to directly map database fields to the Outlet model
-    return [Outlet(**dict(row)) for row in rows]
+    return [_row_to_outlet(row) for row in rows]
 
 def get_outlet_by_id(outlet_id: int) -> Optional[Outlet]:
     """
@@ -38,5 +53,5 @@ def get_outlet_by_id(outlet_id: int) -> Optional[Outlet]:
     row = cursor.fetchone()
     conn.close()
     if row:
-        return Outlet(**dict(row))
+        return _row_to_outlet(row)
     return None

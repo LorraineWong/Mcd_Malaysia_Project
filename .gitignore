@@ -1,7 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*.so
 
 # SQLite database files
 *.db
@@ -9,6 +8,8 @@ __pycache__/
 
 # Environment variables / secrets
 .env
+Mcd_Scraper/.env
+Mcd_Visualizer/.env
 
 # Log files
 *.log
@@ -22,3 +23,6 @@ test/
 
 # VSCode project settings
 .vscode/
+
+# Node modules
+Mcd_Visualizer/node_modules/
