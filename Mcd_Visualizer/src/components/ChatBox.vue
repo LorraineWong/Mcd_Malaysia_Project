@@ -60,6 +60,7 @@
 <script setup>
 import { ref, nextTick } from "vue";
 import axios from "axios";
+import { API_URL } from '../apiConfig'
 
 const isOpen = ref(false);
 const messages = ref([
@@ -95,7 +96,7 @@ async function sendMessage() {
   scrollToBottom();
 
   try {
-    const response = await axios.post("/ask", { question });
+    const response = await axios.post(`${API_URL}/ask`, { question });
     const data = response.data;
     let reply = "";
     if (data.outlets && data.outlets.length > 0) {
