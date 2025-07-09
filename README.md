@@ -115,7 +115,7 @@ Frontend (Vue+Vite+Mapbox)
 
 ## Demo Video
 
-<video src="./videos/demo.mov" controls width="640"></video>
+<video src="./videos/demo.mp4" controls width="640"></video>
 
 ---
 
