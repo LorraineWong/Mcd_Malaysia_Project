@@ -1,92 +1,125 @@
 # 🍔 McDonald's Outlets in Kuala Lumpur, Malaysia
 
-A full-stack app to visualize and search for McDonald’s outlets in Kuala Lumpur.
+A modern full-stack web app to visualize, search, and chat about McDonald’s outlets in Kuala Lumpur.
+
+[Live Demo – Frontend (Vercel)](https://mcd-malaysia-project.vercel.app)  
+[Live API (Render)](https://mcd-malaysia-project.onrender.com/docs)
 
 ---
 
 ## Features
 
-- Interactive Map with all KL outlets and 5km catchment area
-- Outlet info popups (address, features, contact, links)
-- Name search with autocomplete and quick focus
-- Natural language Chatbot (NLP): e.g. "Which outlets in KL operate 24 hours?"
-- Reset map view button
+- **Interactive Map**: See all McD outlets in KL with 5km catchment zone
+- **Outlet Info Popups**: Address, features, contact, Google/Waze links
+- **Fuzzy Search**: Autocomplete outlet names, map quick focus
+- **NLP Chatbot**: Ask in natural language, e.g. “Which outlets in KL operate 24 hours?”
+- **Responsive UI**: Mobile and desktop friendly
+- **Reset Map View**: One click to recenter
 
 ---
 
 ## Tech Stack
 
-- **Backend:** Python, FastAPI
-- **Frontend:** Vue 3, Vite, Mapbox GL JS
-- **Database:** SQLite or PostgreSQL
-- **NLP:** Simple rule-based prompt (can upgrade to LLM)
+| Layer    | Tech & Tools                                         |
+|----------|------------------------------------------------------|
+| Backend  | Python, FastAPI, Uvicorn                             |
+| Frontend | Vue 3, Vite, Mapbox GL JS, Axios                     |
+| Database | SQLite (easy demo), PostgreSQL (optional)            |
+| NLP      | Simple rule-based extraction (upgradeable to LLM)    |
+| Deploy   | Render (API), Vercel (Frontend SPA)                  |
 
 ---
 
-## Setup
+## Setup (Local Development)
 
-### Backend
+### 1. Backend API (FastAPI)
 
 ```bash
-cd backend
+cd Mcd_Malaysia_Project/Mcd_Api
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+# Make sure data/mcd_outlets.db exists
 uvicorn main:app --reload
 ```
 
-### Frontend
+### 2. Frontend (Vue 3 + Vite)
 
 ```bash
-cd frontend
+cd Mcd_Malaysia_Project/Mcd_Visualizer
 npm install
-# Add Mapbox token to .env as VITE_MAPBOX_TOKEN
+# Add your Mapbox token to .env as VITE_MAPBOX_TOKEN=...
 npm run dev
 ```
 
 ---
 
+## Cloud Deployment
+
+- **Backend (API):**  
+  Deployed to [Render](https://render.com/)  
+  API URL: `https://mcd-malaysia-project.onrender.com`
+
+- **Frontend (SPA):**  
+  Deployed to [Vercel](https://vercel.com/)  
+  Frontend URL: `https://mcd-malaysia-project.vercel.app`
+
+**Environment variables:**
+
+- Set `VITE_API_BASE` in your frontend `.env` to point to your API
+- Set `VITE_MAPBOX_TOKEN` for Mapbox
+
+---
+
 ## Key Technical Decisions
 
+- **FastAPI:** Rapid async API, easy OpenAPI docs, production ready.
+- **Vue 3 + Vite:** Fast, modern SPA, easy state and component logic.
+- **Mapbox GL JS:** Interactive, high-quality vector maps.
+- **Chatbot/NLP:** Rule-based, simple for demo, but easy to upgrade to LLM/GenAI.
+- **SQLite:** Lightweight, no setup needed for demo/dev.
 
-### Frameworks/Libraries
+---
 
-- **Backend:** FastAPI (easy API creation, async, good docs)
-- **Frontend:** Vue 3 + Vite (fast, modern SPA, easy component system)
-- **Mapping:** Mapbox GL JS (rich, interactive maps)
-- **NLP:** Simple prompt-based extraction (fast to implement, easy control)
-- **Database:** SQLite (lightweight, suitable for local/demo use)
-    
+## Usage
 
-### Reasoning
+- **View all outlets** on map with popups (address/features)
+- **Search by name** (autocomplete, instant zoom)
+- **Chatbot:** Ask about features, e.g. “Which KL outlets have birthday party?”
+- **Reset Map:** Recenters and zooms out
 
-- FastAPI + Vue 3 combination allows rapid prototyping and clear separation of frontend/backend.
-- Mapbox chosen for beautiful and customizable maps.
-- Simple NLP logic for chatbot keeps the app lightweight but easy to extend.
-    
+---
 
-### Usage
-- View all outlets on the map, with info popups and 5km catchment zones.
-- Search by name with autocomplete.
-- Use the chatbot for questions (e.g. "Which outlets operate 24 hours?").
-- Reset map to default view anytime.
-    
+## Architecture
+Frontend (Vue+Vite+Mapbox)
+          |
+       REST API (FastAPI on Render)
+          |
+    SQLite DB (or upgrade to PostgreSQL)
 
-### Architecture
 
-**Backend:**
-- FastAPI REST API (/outlets, /ask)
-- Serves outlet data and responds to chatbot queries
-    
+- `/outlets` – Get all outlet info for map/search
+- `/ask` – NLP-powered Q&A (returns JSON with outlets/feature)
 
-**Frontend:**
-- Vue SPA, fetches data from API, renders interactive map and UI
-    
-**Database:**
-- SQLite (can upgrade to Postgres if needed)
-    
 ---
 
 ## Notes
-- All development is local (CORS enabled for demo).
-- For production, restrict CORS and use a secure database and API key storage.
+
+- **CORS enabled** for frontend-backend separation (dev & demo).
+- For production, restrict CORS and secure your database/API keys.
+- All assets (icons, favicon, etc.) in `/public/assets/` for easy branding.
+- NLP is modular: swap out for LLM API if needed.
+- Open-source, MIT license.
+
+---
+
+## Demo Video
+
+<video src="./videos/demo.mov" controls width="640"></video>
+
+---
+
+## Credits
+
+- McDonald’s Malaysia (public info), Mapbox, Vue, FastAPI
+- Designed and coded by Lorraine Wong
