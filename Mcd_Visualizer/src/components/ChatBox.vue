@@ -37,7 +37,7 @@
           <input
             v-model="userInput"
             type="text"
-            placeholder="Type your question (e.g. Which outlets operate 24 hours?)"
+            placeholder="Type your question here..."
             autocomplete="off"
             :disabled="loading"
           />
@@ -144,6 +144,7 @@ async function sendMessage() {
 
 .chatbox-container {
   position: fixed;
+  height: 600px;
   right: 40px;
   bottom: 120px; /* Adjusted to avoid covering the button */
   width: 430px;
@@ -221,8 +222,8 @@ async function sendMessage() {
 
 /* Messages area */
 .chat-messages {
-  min-height: 160px;
-  max-height: 290px;
+  min-height: 430px;
+  max-height: 500px;
   overflow-y: auto;
   background: #f7f8fa;
   padding: 12px 10px 12px 10px;

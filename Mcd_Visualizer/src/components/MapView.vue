@@ -40,7 +40,7 @@ const props = defineProps({
   focusedOutletId: String
 })
 
-// Set Mapbox API token (put yours in .env)
+// Set Mapbox API token
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
 
 // Static asset icons for the popup

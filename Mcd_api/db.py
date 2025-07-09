@@ -2,8 +2,9 @@ import sqlite3
 import json
 from typing import List, Optional
 from models import Outlet  # Ensure this path is correct in your project
+import os
 
-DB_PATH = "../Mcd_Scraper/mcd_outlets.db"
+DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'mcd_outlets.db'))
 
 def get_db_connection():
     """

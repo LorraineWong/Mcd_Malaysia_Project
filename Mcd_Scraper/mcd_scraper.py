@@ -7,9 +7,10 @@ from bs4 import BeautifulSoup
 import json
 import time
 import sqlite3
-from geocode_utils import geocode_address  # Import your geocoding utility
+from geocode_utils import geocode_address
+import os
 
-DB_PATH = "mcd_outlets.db"
+DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'mcd_outlets.db'))
 
 # Mapping icon filenames (or alt text) to normalized feature keys
 ICON_FEATURE_MAP = {

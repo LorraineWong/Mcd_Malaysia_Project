@@ -61,7 +61,7 @@ async def ask(request: Request):
             "feature_desc": "",
             "outlets": [],
             "msg": (
-                "Sorry, I can only answer about McDonald's outlets in Kuala Lumpur "
+                "Sorry, I'm only answer about McDonald's outlets in Kuala Lumpur "
                 "and supported features (e.g. 24h, WiFi, Drive-Thru). "
                 "Try asking about KL (Kuala Lumpur) only."
             )
