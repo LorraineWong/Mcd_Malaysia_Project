@@ -13,7 +13,7 @@ A modern full-stack web app to visualize, search, and chat about McDonald’s ou
 - **Outlet Info Popups**: Address, features, contact, Google/Waze links
 - **Fuzzy Search**: Autocomplete outlet names, map quick focus
 - **NLP Chatbot**: Ask in natural language, e.g. “Which outlets in KL operate 24 hours?”
-- **Responsive UI**: Mobile and desktop friendly
+- **Responsive UI**: Desktop friendly
 - **Reset Map View**: One click to recenter
 
 ---
