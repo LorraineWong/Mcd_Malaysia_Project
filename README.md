@@ -103,23 +103,13 @@ Frontend (Vue+Vite+Mapbox)
 
 ---
 
-## Notes
-
-- **CORS enabled** for frontend-backend separation (dev & demo).
-- For production, restrict CORS and secure your database/API keys.
-- All assets (icons, favicon, etc.) in `/public/assets/` for easy branding.
-- NLP is modular: swap out for LLM API if needed.
-- Open-source, MIT license.
-
----
-
 ## Demo Video
 
 [📹 Click here to watch/download the demo video)](./videos/demo.mp4)
 
 ---
 
-## Credits
+## Notes
 
 - McDonald’s Malaysia (public info), Mapbox, Vue, FastAPI
 - Designed and coded by Lorraine Wong
