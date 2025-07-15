@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 ENV = os.getenv("ENV", "development")
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",")
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 
 # Supported locations (should match LOCATION_KEYS in llm_utils.py)
 VALID_LOCATIONS = ["kuala lumpur", "kl"]
