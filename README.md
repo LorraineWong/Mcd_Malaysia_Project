@@ -81,8 +81,6 @@ GEMINI_API_KEY=your_gemini_key
 
 ---
 
-
-
 ## Key Technical Decisions
 
 - **FastAPI** – Simple, performant Python API framework with built-in docs.
@@ -103,13 +101,16 @@ GEMINI_API_KEY=your_gemini_key
 ---
 
 ## Architecture
-[Vue 3 + Mapbox SPA] ──── Axios ────▶ [FastAPI Backend] ────▶ [SQLite DB]
-                                         │
-                                         └──▶ [Gemini API (LLM)]
-
-- `/outlets` – Get all outlets in Kuala Lumpur
-- `/outlets/{id}` – Get details of a single outlet by ID
-- `/ask` – Ask a question (natural language query) 
+- **Frontend**: Vue 3 + Vite + Mapbox GL
+  - Uses Axios to fetch data
+  - Supports search and interactive map
+- **Chatbot**: Gemini API (LLM)
+  - Parses natural language to extract feature + location
+- **Backend API**: FastAPI (on Render)
+  - `/outlets` – Get all outlets in Kuala Lumpur
+  - `/outlets/{id}` – Get details of a single outlet by ID
+  - `/ask` – Ask a question (natural language query) 
+- **Database**: SQLite (simple local DB, optional upgrade to PostgreSQL)
 
 ---
 
@@ -119,7 +120,7 @@ GEMINI_API_KEY=your_gemini_key
 
 ---
 
-## 👩‍💻 Author
+## Author
 
 Designed and developed by **Lorraine Wong**
 
@@ -127,6 +128,6 @@ Designed and developed by **Lorraine Wong**
 
 ---
 
-## 📚 License
+## License
 
-MIT License (for demo purposes)
+MIT License © 2025 Lorraine Wong  
