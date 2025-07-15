@@ -109,7 +109,7 @@ def extract_outlets_from_page(html):
     cards = soup.select("div.addressBox")
     for card in cards:
         try:
-            # Parse JSON-LD data in card
+            # Extract JSON-LD structured data
             ld_json = None
             for script in card.find_all("script", type="application/ld+json"):
                 data = json.loads(script.string)
@@ -119,7 +119,7 @@ def extract_outlets_from_page(html):
             if not ld_json:
                 continue
 
-            # Extract coordinates
+            # Get coordinates from JSON-LD or use geocoding fallback
             lat = ld_json.get("geo", {}).get("latitude")
             lon = ld_json.get("geo", {}).get("longitude")
             if not lat or not lon:
@@ -127,8 +127,10 @@ def extract_outlets_from_page(html):
             lat = lat or ""
             lon = lon or ""
 
-            # Extract all available features/icons
-            features = {}
+            # Initialize all features to False
+            features = {feature: False for feature in ICON_FEATURE_MAP.values()}
+
+            # Update features to True if icon matched
             for img in card.find_all("img", class_="addressIcon"):
                 src = img.get("src", "").lower()
                 alt = img.get("alt", "").lower()
@@ -136,10 +138,7 @@ def extract_outlets_from_page(html):
                     if key in src or key in alt:
                         features[feature] = True
 
-            # For backwards compatibility: always provide "is_24h" key
-            if "is_24h" not in features:
-                features["is_24h"] = False
-
+            # Build outlet dictionary
             outlet = {
                 "name": ld_json.get("name"),
                 "address": ld_json.get("address"),
@@ -167,7 +166,7 @@ def main():
 
     search_btn = wait.until(EC.element_to_be_clickable((By.ID, "search-now")))
     search_btn.click()
-    time.sleep(2)
+    time.sleep(2) # Allow time for outlet list to load
 
     outlets = extract_outlets_from_page(driver.page_source)
     print(f"Found {len(outlets)} outlets in Kuala Lumpur.")

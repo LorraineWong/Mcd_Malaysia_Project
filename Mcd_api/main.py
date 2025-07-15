@@ -3,6 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from llm_utils import parse_query_to_feature_and_location, FEATURE_KEY_DESC
 from db import get_all_outlets, get_outlet_by_id
 from models import Outlet
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+ENV = os.getenv("ENV", "development")
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",")
 
 # Supported locations (should match LOCATION_KEYS in llm_utils.py)
 VALID_LOCATIONS = ["kuala lumpur", "kl"]
@@ -15,7 +22,7 @@ app = FastAPI(
 # Allow CORS for frontend dev/demo
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change this in production!
+    allow_origins=ALLOWED_ORIGINS if ENV == "production" else ["*"],  # local: all allowed
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
