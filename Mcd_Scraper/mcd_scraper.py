@@ -19,13 +19,13 @@ ICON_FEATURE_MAP = {
     "breakfast": "has_breakfast",
     "cashless": "has_cashless",
     "dessert": "has_dessert",
-    "drive": "has_drive_thru",
+    "dt": "has_drive_thru",
     "mccafe": "has_mccafe",
     "mcdelivery": "has_mc_delivery",
     "surau": "has_surau",
     "wifi": "has_wifi",
     "kiosk": "has_order_kiosk",
-    "electric": "has_ev",
+    "ev": "has_ev",
 }
 
 def init_db():
