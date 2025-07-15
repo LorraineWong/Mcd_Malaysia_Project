@@ -7,7 +7,7 @@ A modern full-stack web app to **visualize**, **search**, and **chat** about McD
 
 ---
 
-## Features
+## 🚀 Features
 
 - **Interactive Map**: View all McDonald's outlets in KL with 5km catchment zone.
 - **LLM-Powered Chatbot**: Ask questions like “Which outlets in KL are open 24 hours?” and get intelligent answers powered by **Gemini (Google Generative AI)**.
@@ -18,7 +18,7 @@ A modern full-stack web app to **visualize**, **search**, and **chat** about McD
 
 ---
 
-## Tech Stack
+## 🧱 Tech Stack
 
 | Layer       | Tech & Tools                                                  |
 |-------------|---------------------------------------------------------------|
@@ -30,7 +30,7 @@ A modern full-stack web app to **visualize**, **search**, and **chat** about McD
 
 ---
 
-## Setup (Local Development)
+## 🛠️ Setup (Local Development)
 
 ### 1. Backend API (FastAPI)
 
@@ -81,7 +81,7 @@ GEMINI_API_KEY=your_gemini_key
 
 ---
 
-## Key Technical Decisions
+## 🧠 Key Technical Decisions
 
 - **FastAPI** – Simple, performant Python API framework with built-in docs.
 - **Vue 3 + Vite** – Modern SPA frontend with modular components.
@@ -91,7 +91,7 @@ GEMINI_API_KEY=your_gemini_key
 
 ---
 
-## Usage
+## 📄 Usage
 
 - **View all outlets** on map with popups (address/features)
 - **Search by name** (autocomplete, instant zoom)
@@ -100,7 +100,7 @@ GEMINI_API_KEY=your_gemini_key
 
 ---
 
-## Architecture
+## 🗺️ Architecture
 - **Frontend**: Vue 3 + Vite + Mapbox GL
   - Uses Axios to fetch data
   - Supports search and interactive map
@@ -114,13 +114,13 @@ GEMINI_API_KEY=your_gemini_key
 
 ---
 
-## Demo Video
+## 🎬 Demo Video
 
 [📹 Click here to watch/download the demo video)](./videos/demo.mp4)
 
 ---
 
-## Author
+## 👩‍💻 Author
 
 Designed and developed by **Lorraine Wong**
 
@@ -128,6 +128,6 @@ Designed and developed by **Lorraine Wong**
 
 ---
 
-## License
+## 📚 License
 
 MIT License © 2025 Lorraine Wong  
