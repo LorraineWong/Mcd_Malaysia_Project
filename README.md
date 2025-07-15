@@ -1,32 +1,32 @@
 # 🍔 McDonald's Outlets in Kuala Lumpur, Malaysia
 
-A modern full-stack web app to visualize, search, and chat about McDonald’s outlets in Kuala Lumpur.
+A modern full-stack web app to **visualize**, **search**, and **chat** about McDonald’s outlets in **Kuala Lumpur, Malaysia**.
 
-[Live Demo – Frontend (Vercel)](https://mcd-malaysia-project.vercel.app)  
-[Live API (Render)](https://mcd-malaysia-project.onrender.com/docs)
+- 🔗 [Live Frontend (Vercel)](https://mcd-malaysia-project.vercel.app)  
+- 🔗 [Live API Docs (Render)](https://mcd-malaysia-project.onrender.com/docs)
 
 ---
 
 ## Features
 
-- **Interactive Map**: See all McD outlets in KL with 5km catchment zone
-- **Outlet Info Popups**: Address, features, contact, Google/Waze links
-- **Fuzzy Search**: Autocomplete outlet names, map quick focus
-- **NLP Chatbot**: Ask in natural language, e.g. “Which outlets in KL operate 24 hours?”
-- **Responsive UI**: Desktop friendly
-- **Reset Map View**: One click to recenter
+- **Interactive Map**: View all McDonald's outlets in KL with 5km catchment zone.
+- **LLM-Powered Chatbot**: Ask questions like “Which outlets in KL are open 24 hours?” and get intelligent answers powered by **Gemini (Google Generative AI)**.
+- **Autocomplete Search**: Realtime partial-match search by outlet name with map focus.
+- **Outlet Popups**: Address, features, contact, Google/Waze navigation links, and nearby outlet overlap hints.
+- **Reset View Button**: One click to recenter and zoom out.
+- **Responsive UI**: Optimized for desktop usage.
 
 ---
 
 ## Tech Stack
 
-| Layer    | Tech & Tools                                         |
-|----------|------------------------------------------------------|
-| Backend  | Python, FastAPI, Uvicorn                             |
-| Frontend | Vue 3, Vite, Mapbox GL JS, Axios                     |
-| Database | SQLite (easy demo), PostgreSQL (optional)            |
-| NLP      | Simple rule-based extraction (upgradeable to LLM)    |
-| Deploy   | Render (API), Vercel (Frontend SPA)                  |
+| Layer       | Tech & Tools                                                  |
+|-------------|---------------------------------------------------------------|
+| **Frontend** | Vue 3, Vite, Mapbox GL JS, Axios                             |
+| **Backend**  | FastAPI (Python), Uvicorn                                    |
+| **Database** | SQLite (for demo), PostgreSQL (optional upgrade)             |
+| **AI/NLP**   | Google Gemini (Generative AI) for parsing user queries       |
+| **Deploy**   | Vercel (frontend SPA) + Render (FastAPI backend)             |
 
 ---
 
@@ -39,7 +39,7 @@ cd Mcd_Malaysia_Project/Mcd_Api
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-# Make sure data/mcd_outlets.db exists
+# Make sure data/mcd_outlets.db exists or run the scraper
 uvicorn main:app --reload
 ```
 
@@ -48,36 +48,48 @@ uvicorn main:app --reload
 ```bash
 cd Mcd_Malaysia_Project/Mcd_Visualizer
 npm install
-# Add your Mapbox token to .env as VITE_MAPBOX_TOKEN=...
+# Create .env and set:
+# VITE_MAPBOX_TOKEN=your_mapbox_token
+# VITE_API_BASE=http://localhost:8000
 npm run dev
 ```
 
 ---
 
-## Cloud Deployment
+## ☁️ Cloud Deployment
 
-- **Backend (API):**  
-  Deployed to [Render](https://render.com/)  
-  API URL: `https://mcd-malaysia-project.onrender.com`
+- **Backend API** → [Render](https://render.com/)  
+  `https://mcd-malaysia-project.onrender.com`
 
-- **Frontend (SPA):**  
-  Deployed to [Vercel](https://vercel.com/)  
-  Frontend URL: `https://mcd-malaysia-project.vercel.app`
+- **Frontend SPA** → [Vercel](https://vercel.com/)  
+  `https://mcd-malaysia-project.vercel.app`
 
-**Environment variables:**
+### Required Environment Variables
 
-- Set `VITE_API_BASE` in your frontend `.env` to point to your API
-- Set `VITE_MAPBOX_TOKEN` for Mapbox
+#### Frontend (`.env`)
+```env
+VITE_MAPBOX_TOKEN=your_mapbox_token
+VITE_API_BASE=https://mcd-malaysia-project.onrender.com
+```
+
+#### Backend (`.env`)
+```env
+ENV=production
+ALLOWED_ORIGINS=https://mcd-malaysia-project.vercel.app
+GEMINI_API_KEY=your_gemini_key
+```
 
 ---
 
+
+
 ## Key Technical Decisions
 
-- **FastAPI:** Rapid async API, easy OpenAPI docs, production ready.
-- **Vue 3 + Vite:** Fast, modern SPA, easy state and component logic.
-- **Mapbox GL JS:** Interactive, high-quality vector maps.
-- **Chatbot/NLP:** Rule-based, simple for demo, but easy to upgrade to LLM/GenAI.
-- **SQLite:** Lightweight, no setup needed for demo/dev.
+- **FastAPI** – Simple, performant Python API framework with built-in docs.
+- **Vue 3 + Vite** – Modern SPA frontend with modular components.
+- **Mapbox GL JS** – High-quality interactive maps.
+- **Gemini API (Google Generative AI)** – Parses user queries into structured search.
+- **SQLite** – Lightweight and easy to use for demos and prototyping.
 
 ---
 
@@ -91,15 +103,13 @@ npm run dev
 ---
 
 ## Architecture
-Frontend (Vue+Vite+Mapbox)
-          |
-       REST API (FastAPI on Render)
-          |
-    SQLite DB (or upgrade to PostgreSQL)
+[Vue 3 + Mapbox SPA] ──── Axios ────▶ [FastAPI Backend] ────▶ [SQLite DB]
+                                         │
+                                         └──▶ [Gemini API (LLM)]
 
-
-- `/outlets` – Get all outlet info for map/search
-- `/ask` – NLP-powered Q&A (returns JSON with outlets/feature)
+- `/outlets` – Get all outlets in Kuala Lumpur
+- `/outlets/{id}` – Get details of a single outlet by ID
+- `/ask` – Ask a question (natural language query) 
 
 ---
 
@@ -109,7 +119,14 @@ Frontend (Vue+Vite+Mapbox)
 
 ---
 
-## Notes
+## 👩‍💻 Author
 
-- McDonald’s Malaysia (public info), Mapbox, Vue, FastAPI
-- Designed and coded by Lorraine Wong
+Designed and developed by **Lorraine Wong**
+
+> 🧡 Built for learning, demo, and portfolio use.
+
+---
+
+## 📚 License
+
+MIT License (for demo purposes)
